@@ -15,6 +15,11 @@ This repository is dedicated to exploring Kotlin coroutines, covering everything
 ## Getting Started
 
 To get started with this project, clone the repository and import it into your IDE of choice as a Maven project.
+```shell
+git clone https://github.com/Ahmad-alsanie/kotlin-coroutines-made-simple.git
+cd kotlin-coroutines-made-simple
+mvn clean install
+```
 
 ## Modules
 
