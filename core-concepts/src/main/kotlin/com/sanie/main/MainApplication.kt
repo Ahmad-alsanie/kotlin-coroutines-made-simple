@@ -1,9 +1,5 @@
 package com.sanie.main
 
-import io.ktor.client.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
-import io.ktor.client.request.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
 

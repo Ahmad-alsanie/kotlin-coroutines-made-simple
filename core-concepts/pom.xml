@@ -41,21 +41,6 @@
 
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-core</artifactId>
-            <version>1.6.3</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-cio</artifactId>
-            <version>1.6.3</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-client-json</artifactId>
-            <version>1.6.3</version>
-        </dependency>
-        <dependency>
-            <groupId>io.ktor</groupId>
             <artifactId>ktor-client-serialization-jvm</artifactId>
             <version>1.6.3</version>
         </dependency>
