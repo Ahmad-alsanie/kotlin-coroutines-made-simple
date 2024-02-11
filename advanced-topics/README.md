@@ -145,7 +145,70 @@ fun main() = runBlocking {
 --------------------------------------------------------------
 
 ### Flow and Reactive Streams
-Cold streams and Kotlin Flow. How Flow complements coroutines by providing a robust stream processing API, and we will see how it can interoperate with reactive streams libraries like RxJava.
+How Flow complements coroutines by providing a robust stream processing API, and we will see how it can interoperate with reactive streams libraries like RxJava.
+
+#### Fundamentals
+Flow offers cold streams, meaning the code inside a flow builder does not run until the flow is collected. 
+This is particularly useful for representing an asynchronous stream of data that can be computed on demand. 
+Reactive Streams, on the other hand, is a standard for asynchronous stream processing with non-blocking back pressure. 
+Kotlin Flow provides interoperability with Reactive Streams, allowing seamless integration with other reactive libraries like RxJava.
+
+#### Flow as a concept
+Flow is a type in Kotlin that represents a cold asynchronous stream of data. It is conceptually similar to sequences but for asynchronous operations.
+
+```kotlin
+fun simpleFlow(): Flow<Int> = flow {
+    for (i in 1..3) {
+        delay(100) // Pretend we are doing something asynchronous here
+        emit(i) // Send a value downstream
+    }
+}
+
+fun main() = runBlocking<Unit> {
+    launch {
+        for (k in 1..3) {
+            println("I'm not blocked $k")
+            delay(100)
+        }
+    }
+    simpleFlow().collect { value ->
+        println(value)
+    }
+}
+```
+
+#### Backpressure and Flows
+Backpressure is a situation where a data source produces data faster than it can be consumed. 
+Flow handles such situations implicitly by suspending the emission of values until the consumer is ready to process them.
+
+#### Stream Functions
+A flow supports a set of various functions that can be used to transform, combine, and consume the data streams.
+
+```kotlin
+fun main() = runBlocking<Unit> {
+    (1..5).asFlow()
+        .filter { it % 2 == 0 }
+        .map { it * it }
+        .collect { println(it) }
+}
+
+```
+
+Kotlin supports interoperability and conversion between flows and reactive streams:
+
+```kotlin
+
+fun main() = runBlocking<Unit> {
+    val flow = (1..5).asFlow()
+    val publisher: Publisher<Int> = flow.asPublisher(coroutineContext)
+    publisher.subscribe("sub")
+}
+
+```
+
+Usage:
+- Used for cold streams that are computed on demand.
+- Used to perform transformations and combinations of data streams.
 
 ---------------------------------------------------------------
 
