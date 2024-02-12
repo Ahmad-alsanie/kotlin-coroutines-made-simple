@@ -276,11 +276,66 @@ Keep in mind that `flow` can be more efficient for these use cases due to its su
 Managing shared mutable state in a concurrent environment is challenging. 
 Here we will explore the strategies and best practices for using shared mutable state safely within coroutines.
 
+#### Challenges with Shared Mutable State
+- Race Conditions: Occur when two or more threads access shared state concurrently and at least one of them modifies the state.
+- Visibility Issues: Changes made by one thread might not be immediately visible to other due to caching and optimization done by modern CPUs.
+
+#### Strategies for Safe Concurrent Modifications
+- Thread-Confined State: Limiting state modification to a single thread to ensure consistency.
+- Immutable Shared State: Using immutable data structures that can safely be shared without the need for synchronization.
+- Thread-Safe Data Structures: Utilizing data structures that guarantee safe concurrent access and modifications, such as `kotlinx.coroutines.Channel`.
+- Actors: An actor is an encapsulation of state and behavior that interacts with other actors through message passing, ensuring that state mutations are confined to a specific coroutine context.
+
+#### Using Actors
+Actor pattern prevents concurrent access to the state and makes it easier to reason about changes to the state
+
+```kotlin
+sealed class CounterMsg
+object IncCounter : CounterMsg() // Increment message
+class GetCounter(val response: CompletableDeferred<Int>) : CounterMsg() // Request current count
+
+//create a counter actor
+fun CoroutineScope.counterActor() = actor<CounterMsg> {
+    var counter = 0 // Actor state
+    for (msg in channel) { // Iterate over incoming messages
+        when (msg) {
+            is IncCounter -> counter++ 
+            is GetCounter -> msg.response.complete(counter)
+        }
+    }
+}
+
+fun main() = runBlocking {
+    val counter = counterActor() // create the actor
+
+    // Increment the counter 100 times in parallel
+    val jobs = List(100) {
+        launch {
+            counter.send(IncCounter)
+        }
+    }
+    jobs.forEach { it.join() } // Wait for all increments to complete
+
+    // retrieve value
+    val response = CompletableDeferred<Int>()
+    counter.send(GetCounter(response))
+    println("Counter = ${response.await()}")
+
+    counter.close() // close the actor
+}
+```
+
+- try to reduce the amount of shared mutable state to simplify concurrency management.
+- when shared mutable state is necessary, prefer using data structures designed for concurrent access.
+- utilize structures like actors or Mutex for critical sections to manage state changes.
+- encapsulate operations on shared state within specific scopes to ensure lifecycle and cancellation are handled properly.
+
+
 ---------------------------------------------------------------
 
 ### Select Expression
 The select expression allows coroutines to await multiple suspending functions and select the first one that becomes available. 
-Here we'll discuss to use select for complex coordination tasks.
+Here we'll discuss how to use select for complex coordination tasks.
 
 ---------------------------------------------------------------
 ## Additional Resources
