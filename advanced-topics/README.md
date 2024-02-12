@@ -216,6 +216,60 @@ Usage:
 Channels allow for communication between coroutines in a way that's safe and concurrent. 
 This section covers the types of channels available, their use cases, and how to implement producer-consumer patterns.
 
+
+#### Operations
+- Created using the `Channel()` factory function. You can specify the capacity of the channel (buffer size). If not specified, the channel will be created with a default capacity.
+- We will use `send(value)` to send data to a channel and `receive()` to receive data from it. Both of these operations are suspending functions and can be called from coroutine contexts.
+- Senders can close a channel to indicate that no more elements are going to be sent. Receivers can check for channel closure using `isClosedForReceive`.
+
+#### Types
+- Rendezvous Channel: default without a buffer. The sender suspends until the receiver is ready to receive the element.
+- Buffered Channel: has a buffer of a fixed size. The sender is suspended only when the buffer is full.
+- Unlimited Channel: backed by a linked list of elements, allowing practically unlimited sends.
+- Conflated Channel: Only keeps the latest element sent. If a sender sends an element before the previous element has been received, the previous element will be overwritten.
+
+```kotlin
+fun main() = runBlocking {
+    val channel = Channel<Int>()
+    
+    launch {
+        for (x in 1..5) channel.send(x)
+        channel.close()
+    }
+    
+    // Consumes the channel until it's closed
+    for (y in channel) println(y)
+}
+```
+
+#### Advanced Operations
+Producer consumer example
+```kotlin
+fun CoroutineScope.produceNumbers() = produce<Int> {
+    var x = 1 // start from 1
+    while (true) {
+        send(x++) // produce next number
+        delay(100) // wait 0.1s
+    }
+}
+
+fun main() = runBlocking {
+    val numbers = produceNumbers() // starts the producer coroutine
+    repeat(5) { // take first five numbers
+        println(numbers.receive())
+    }
+    println("Done!")
+    coroutineContext.cancelChildren() // cancel producer coroutine
+}
+```
+
+Keep in mind that `flow` can be more efficient for these use cases due to its support for functional transformations and its integration with the rest of the Kotlin coroutines ecosystem.
+
+- Use channels for hot streams where the data is produced independently of the consumption, and you need to handle backpressure or when you're implementing producer-consumer patterns.
+- Consider using Flow for cold streams where the data is produced only in response to a consumer request, especially when dealing with a fixed set of data or when applying transformations.
+- Properly manage channel lifecycle, especially closing it when no longer needed to prevent memory leaks and ensure coroutine cancellation is handled correctly.
+
+
 ---------------------------------------------------------------
 
 ### Shared Mutable State and Concurrency
