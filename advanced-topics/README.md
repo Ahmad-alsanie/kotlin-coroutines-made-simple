@@ -337,6 +337,40 @@ fun main() = runBlocking {
 The select expression allows coroutines to await multiple suspending functions and select the first one that becomes available. 
 Here we'll discuss how to use select for complex coordination tasks.
 
+- Non-Blocking: `select` is non-blocking, it suspends the coroutine until one of its branches is ready to execute.
+- Flexible: `select` can be used with channels, deferred values, and other suspending functions.
+
+In the following example we will see how select expression is used with channels to receive from multiple channels and process the first received element
+
+```kotlin
+suspend fun selectExample(channelA: ReceiveChannel<Int>, channelB: ReceiveChannel<Int>) {
+    select<Unit> { 
+        channelA.onReceive { value ->
+            println("received $value from channelA")
+        }
+        channelB.onReceive { value ->
+            println("received $value from channelB")
+        }
+    }
+}
+```
+
+In the next example we will be using select with deferred values to await the first completed operation then terminate early.
+
+```kotlin
+suspend fun asyncSelectExample(deferredA: Deferred<Int>, deferredB: Deferred<Int>) {
+    select<Unit> {
+        deferredA.onAwait { value ->
+            println("deferredA completed with value $value")
+        }
+        deferredB.onAwait { value ->
+            println("deferredB completed with value $value")
+        }
+    }
+}
+```
+
+
 ---------------------------------------------------------------
 ## Additional Resources
 [Official Kotlin Docs](https://kotlinlang.org/docs/coroutines-overview.html)
