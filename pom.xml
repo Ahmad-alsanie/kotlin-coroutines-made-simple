@@ -12,7 +12,6 @@
     <modules>
         <module>core-concepts</module>
         <module>advanced-topics</module>
-        <module>spring-integration</module>
     </modules>
 
     <properties>
